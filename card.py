@@ -16,6 +16,9 @@ class Card:
 
 	def get_value(self):
 		return self.value
+	
+	def check(self):
+		return '1.0'
 
 	def __repr__(self):
 		return f'{self.suit}/{self.name}'
