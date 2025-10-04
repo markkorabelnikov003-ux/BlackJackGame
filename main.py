@@ -5,20 +5,26 @@ from time import sleep
 
 class BlackJackGame:
 	def __init__(self):
+		self.running = True
+		self.minimal_bet = 100
+		self.starting_money = 500
+		self.ver = '0.9'
+
 		self.deck = Deck()
-		self.player = player.Player()
+		self.player = player.Player(self.starting_money)
 		self.dealer = player.Dealer()
 		self.players = [self.dealer, self.player]
-		self.running = True
 
 	def run(self):
+		print(f'version: {self.ver}')
 		print('\n⎛⎝( ` ᢍ ´ )⎠⎞ᵐᵘʰᵃʰᵃ\n' + '='*15 + ' Welcome to the Blackjack game! ' + '='*15 + '\n')
 		sleep(1)
 		while self.running:
 			self.dealer.reset_hand()
 			self.player.reset_hand()
 
-			self.get_ready()
+			if self.get_ready():
+				continue
 			self.place_bet()
 			print('\n' + '='*5 + ' The round has started ' + '='*5 + '\n')
 
@@ -44,48 +50,58 @@ class BlackJackGame:
 			print('\n' + '='*5 + ' The round has ended ' + '='*5 + '\n')
 	
 	def check_game(self) -> bool:
-		end = True  # flag for ending the round
-		match self.get_game_result():
+		res = self.get_game_result()
+		match res:
 			case 0:
 				print('\nThe game is continuing (つ≖_≖)つ')
-				end = False
 			case 1:
 				print('\nDealer won cause you\'ve busted!')
-				self.dealer.show_hand()
-				print(f'\nYou have lost {self.player.lose()} chips... (ㅠ﹏ㅠ)')
 			case 2:
 				print('\nBlackjack! Dealer has won with')
-				self.dealer.show_hand()
-				print(f'\nYou have lost {self.player.lose()} chips... (ㅠ﹏ㅠ)')
 			case 3:
 				print('\nYou won cause the dealer have busted!')
-				self.dealer.show_hand()
-				print(f'\nYou have earned {self.player.win()} chips')
 			case 4:
-				print('\nBlackjack! You have won! Congrats ദ്ദി ˉ͈̀꒳ˉ͈́ )✧')
-				self.dealer.show_hand()
-				print(f'\nYou have earned {self.player.win()} chips')
+				print('\nBlackjack! You have won! Congrats')
 			case 5:
 				print('\nCRAZY! You both got blackjacks (◉ _ ◉)')
-				self.dealer.show_hand()
-				print('\nYou haven\'t lost any chips')
 
-		return end
+		if res:
+			self.dealer.show_hand()
+		sleep(1)
+		if res in (1, 2):
+			print(f'\nYou have lost {self.player.lose()} chips... (ㅠ﹏ㅠ)')
+		elif res in (3, 4):
+			print(f'\nYou have earned {self.player.win()} chips  ദ്ദി ˉ͈̀꒳ˉ͈́ )✧')
+		elif res == 5:
+			print('\nYou haven\'t lost any chips')
+		else:
+			# if the game is continuing (res == 0)
+			return False
 
-	def get_ready(self):
+		return True
+
+	def get_ready(self) -> bool:
+		if self.player.chips < self.minimal_bet:
+			print(
+				"""Looks like you\'ve lost all your money.
+Remember, gambling is bad, especially when you dont know how to gamble properly >:D
+We will glad to see you again, but firstly earn some more money""")
+			self.running = False
+			return True
+
 		print('Are you ready to play? (y/n)')
-				
+
 		# цикл инпута
 		while True:
 			user_choice = input('>> ')
 
 			match user_choice:
 				case 'y':
-					break
+					return False
 				case 'n':
 					print('\nByyyyeee! ˃̵ᴗ˂̵')
-					self.stop()
-					break
+					self.running = False
+					return True
 	
 	def place_bet(self):
 		print(f'\nIt\'s time to place a bet... (you have {self.player.chips} chips)')
@@ -170,17 +186,18 @@ class BlackJackGame:
 		match res:
 			case 0:
 				print(f'\nNeither you nor the dealer had blackjack. However he was closer to 21 by {player_d-dealer_d} points...')
-				sleep(1)
+				sleep(2)
 				print(f'You\'ve lost {self.player.lose()} chips... (⸝⸝⸝-﹏-⸝⸝⸝)')
 			case 1:
 				print(f'\nNeither you nor the dealer had blackjack. But YOU were closer to 21 by {dealer_d-player_d} points!')
-				sleep(1)
+				sleep(2)
 				print(f'You\'ve earned {self.player.win()} chips! Congrats ٩(ˊᗜˋ*)و')
 			case 2:
 				print(f'\nIt\'s a TIE!!! (⊙ _ ⊙ )')
-				sleep(1)
+				sleep(2)
 				print(f'You won\'t be charged. You better beat him next time ლ(ಠ益ಠლ)')
 
+		sleep(1)
 		print('\nFinal hands:')
 		self.dealer.show_hand()
 		self.player.show_hand()
@@ -215,8 +232,7 @@ class BlackJackGame:
 		"""
 
 		hitting = True
-		game_state = self.check_game()
-		while not game_state and hitting:
+		while not (game_state := self.check_game()) and hitting:
 			print('\nChoose: hit or stand? (h/s)')
 
 			while True:
@@ -230,30 +246,29 @@ class BlackJackGame:
 				elif user_input == 's':
 					hitting = False
 					break
-			game_state = self.check_game()
 		
 		return bool(game_state)
 
 	def dealer_take_turn(self) -> bool:
 		if self.dealer.count_soft() > 16:
+			self.dealer.show_hand()
 			print('\nLook\'s like dealer already has more than 16 points. Lets count the results (·•᷄_•᷅ )')
+			sleep(2)
 			return False
 		
-		while not (game_state := self.check_game()) and self.dealer.count_soft() <= 16:
+		game_state = 0
+		while not game_state and self.dealer.count_soft() <= 16:
 			self.dealer.take_cards(self.deck, 1)
 			self.dealer.show_hand()
 			sleep(2)
-
-		game_state = self.check_game()
+			game_state = self.check_game()
 		
 		return bool(game_state)
-                
-
-	def stop(self):
-		quit()
 
 
 if __name__ == '__main__':
 	game = BlackJackGame()
-	game.run()
-	input('The program has stopped')
+	try:
+		game.run()
+	except KeyboardInterrupt:
+		input('\n\nThe program has stopped. Press enter to quit')
