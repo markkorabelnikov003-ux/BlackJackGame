@@ -12,7 +12,7 @@ class BasePlayer:
 		return self.hand.copy()
 
 	def show_hand(self):
-		print(self.hand)
+		return str(self.hand)
 	
 	def count(self) -> int:
 		cards = [card.get_value() for card in self.hand]
@@ -24,6 +24,9 @@ class BasePlayer:
 			raw_sum -= 10
 
 		return raw_sum
+	
+	def count_raw(self) -> int:
+		return sum([card.get_value() for card in self.hand])
 
 	def hand_state(self) -> int:
 		"""
@@ -44,24 +47,9 @@ class BasePlayer:
 		self.hand.clear()
 
 
-class Dealer(BasePlayer):
-	def count_soft(self) -> int:
-		cards = [card.get_value() for card in self.hand]
-		aces = cards.count(11)
-		raw_sum = sum(cards)
-
-		while raw_sum > 16 and aces:
-			aces -= 1
-			raw_sum -= 10
-
-		return raw_sum
-
-
-	def show_hand(self):
-		print(f'Dealer\'s hand: {str(self.hand)[1:-1]}\t({self.count()})')
-
-	def show_halfhand(self):
-		print(f'Dealer\'s hand: {self.hand[0]}, ??\t(?)')
+class Dealer(BasePlayer):	
+	def is_enough(self) -> int:
+		return self.count_raw() >= 17
 
 
 class Player(BasePlayer):
@@ -69,9 +57,6 @@ class Player(BasePlayer):
 		super().__init__()
 		self.chips = chips
 		self.bet = 0
-	
-	def show_hand(self):
-		print(f'Player\'s hand: {str(self.hand)[1:-1]}\t({self.count()})')
 	
 	def do_bet(self, bet: int):
 		self.bet = bet
