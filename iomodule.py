@@ -68,6 +68,26 @@ We will glad to see you again, but firstly earn some more money""")
 			print(f'{person}\'s hand: {str(hand)[1:-1]}\t({player_obj.count()})')
 		sleep(0.5)
 	
+	def checking_start_hand(dealer_obj, game_state: int) -> bool:
+		end_round = False
+
+		if game_state == 4:
+			end_round = True
+			print('\nThat\'s a natural blackjack! Rare to see one')
+			sleep(2)
+
+		if game_state in (2, 5):
+			end_round = True
+			print('\nLook\' like dealer has a chance of having a blackjack!')
+			sleep(2)
+			Message.show_hand(dealer_obj, 'Full dealer')
+			
+			if game_state == 5:
+				print('\nBut wait, you have it too! This is a push.')
+				sleep(2)
+		
+		return end_round
+
 	def checking_game(game_state) -> bool:
 		match game_state:
 			case 0:
@@ -110,7 +130,7 @@ We will glad to see you again, but firstly earn some more money""")
 					break
 				elif user_input == 's':
 					sleep(1)
-					
+
 					hitting = False
 					break
 
@@ -156,8 +176,10 @@ We will glad to see you again, but firstly earn some more money""")
 			print(f'\nYou have lost {player_obj.lose()} chips... (ㅠ﹏ㅠ)')
 		elif game_state in (3, 4):
 			print(f'\nYou have earned {player_obj.win()} chips  ٩(ˊᗜˋ*)و')
-		else:
+		elif game_state == 5:
 			print('\nYou haven\'t lost any chips')
+		else:
+			print(f'\nYou have earned {player_obj.win_natural()} chips  ٩(ˊᗜˋ*)و')
 		sleep(2)
 		
 		print('\nFinal hands:')

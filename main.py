@@ -35,20 +35,32 @@ class BlackJackGame:
 			Message.show_hand(self.dealer, 'Dealer', half=True)
 			Message.show_hand(self.player, 'Player')
 			
+			# checking for natural blackjacks
+			game_state = self.get_game_state()
+			if Message.checking_start_hand(self.dealer, game_state):
+				Message.checking_game(game_state)
+				Message.ending_round(self.dealer, self.player, 6)
+				continue
+			
+			# players turn
 			game_state = Message.player_taking_turn(self.player_hit, self.player, self.get_game_state())
 			# if player busted
 			if game_state == 1:
 				Message.ending_round(self.dealer, self.player, game_state)
 				continue
+
 			Message.show_hand(self.dealer, 'Full dealer')
 			
+			# dealers turn
 			Message.dealer_taking_turn(self.dealer_hit, self.dealer)
 			
+			# dealer hit black jack or busted
 			game_state = self.get_game_state()
 			if Message.checking_game(game_state):
 				Message.ending_round(self.dealer, self.player, game_state)
 				continue
 			
+			# no blackjacks, final counting
 			game_res = Message.final_counting(self.count_diff)
 			Message.ending_round(self.dealer, self.player, game_res)
 	
@@ -66,10 +78,10 @@ class BlackJackGame:
 		elif amount > self.player.chips:
 			return 2
 		elif amount == self.player.chips:
-			self.player.do_bet(amount)
+			self.player.set_bet(amount)
 			return 3
 		
-		self.player.do_bet(amount)
+		self.player.set_bet(amount)
 		return 0
 	
 	def get_game_state(self) -> int:

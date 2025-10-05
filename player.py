@@ -58,7 +58,7 @@ class Player(BasePlayer):
 		self.chips = chips
 		self.bet = 0
 	
-	def do_bet(self, bet: int):
+	def set_bet(self, bet: int):
 		self.bet = bet
 	
 	def lose(self) -> int:
@@ -69,6 +69,12 @@ class Player(BasePlayer):
 	
 	def win(self) -> int:
 		amount = self.bet
-		self.chips += self.bet
+		self.chips += amount
+		self.bet = 0
+		return amount
+	
+	def win_natural(self) -> int:
+		amount = int(self.bet * 1.5)
+		self.chips += amount
 		self.bet = 0
 		return amount
