@@ -1,4 +1,5 @@
 from card import Card
+from copy import deepcopy
 
 class BasePlayer:
 	def __init__(self):
@@ -9,7 +10,7 @@ class BasePlayer:
 			self.hand.append(card)
 	
 	def get_cards(self):
-		return self.hand.copy()
+		return deepcopy(self.hand)
 
 	def show_hand(self):
 		return str(self.hand)
